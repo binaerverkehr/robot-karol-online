@@ -1,5 +1,5 @@
 // const host = 'http://localhost:3006'
-const host = 'https://karolbackend.logiklabor.de'
+const host = 'https://karol.arrrg.de/backend'
 
 export const backend = {
   // statistics endpoint for logging events
