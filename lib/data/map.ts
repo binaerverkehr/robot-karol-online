@@ -73,13 +73,15 @@ export const mapData: {
 
   56: { x: 830, y: 1030, deps: [55, 14], dir: 'west' },
 
-  45: { x: 810, y: 1180, deps: [56], dir: 'west' },
+  45: { x: 690, y: 1180, deps: [56], dir: 'west' },
 
   12: { x: 490, y: 960, deps: [4, 24, 58], dir: 'west' },
 
-  57: { x: 560, y: 1060, deps: [4, 56, 58], dir: 'west' },
+  64: { x: 560, y: 1060, deps: [4, 56, 58], dir: 'west' },
 
-  59: { x: 620, y: 1190, deps: [57], dir: 'west' },
+  57: { x: 850, y: 1180, deps: [56], dir: 'west' },
+
+  59: { x: 740, y: 1310, deps: [57], dir: 'west' },
 
   28: { x: 1100, y: 1040, deps: [14], dir: 'west' },
 
@@ -87,7 +89,7 @@ export const mapData: {
 
   37: { x: 280, y: 890, deps: [5], dir: 'west' },
 
-  13: { x: 350, y: 1090, deps: [12, 57, 5], dir: 'south' },
+  13: { x: 350, y: 1090, deps: [12, 64, 5], dir: 'south' },
 
   // end of part 2
 
@@ -109,6 +111,10 @@ export const mapData: {
 
   // python
   61: { x: 1000, y: 1470, deps: [], dir: 'south' },
-  62: { x: 830, y: 1540, deps: [61], dir: 'west' },
+  62: { x: 830, y: 1520, deps: [61], dir: 'west' },
   63: { x: 960, y: 1660, deps: [61], dir: 'west' },
+  65: { x: 650, y: 1660, deps: [61], dir: 'west' },
+  66: { x: 550, y: 1800, deps: [61], dir: 'west' },
+  67: { x: 790, y: 1720, deps: [61], dir: 'west' },
+  68: { x: 1100, y: 1620, deps: [61], dir: 'west' },
 }

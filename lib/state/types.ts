@@ -120,6 +120,7 @@ export interface Quest {
   completedOnce: boolean
   audioSrc?: string
   thisTaskIsAlreadyCompleted?: number
+  lockToKarolCode?: boolean
 }
 
 export interface Overview {
@@ -222,7 +223,9 @@ export interface Analyze {
   appearance: { [key: string]: { count: number } }
   brushColors: { [key: string]: { count: number } }
   loadedRobotImages: { [key: string]: { count: number } }
-  quests: { [key: string]: { reachable: number; complete: number } }
+  quests: {
+    [key: string]: { reachable: number; complete: number; completedAll: number }
+  }
   userTimes: number[]
   solutions: {
     [questId: string]: {
@@ -453,6 +456,7 @@ export interface PyodideWorker {
   run: (code: string) => Promise<void>
   reset: () => void
   input: (input: string) => void
+  lint: (input: string) => void
   sharedArrayDelay: Int32Array
   questPromptConfirm?: Int32Array
 }

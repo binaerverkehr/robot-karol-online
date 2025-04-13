@@ -12,7 +12,7 @@ import { startButtonClicked } from '../../lib/commands/start'
 import { setMode } from '../../lib/commands/mode'
 import { setLanguage } from '../../lib/commands/language'
 import { Settings } from '../../lib/state/types'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 export function InteractionBar() {
   const core = useCore()
@@ -42,7 +42,7 @@ export function InteractionBar() {
       )}
     >
       <button
-        className="px-2 py-0.5 border border-gray-300 text-gray-600 bg-white rounded transition duration-150 ease-in-out hover:bg-gray-100"
+        className="whitespace-nowrap px-2 py-0.5 border border-gray-300 text-gray-600 bg-white rounded transition duration-150 ease-in-out hover:bg-gray-100"
         onClick={() => {
           submitAnalyzeEvent(core, 'ev_click_ide_menu')
           core.mutateWs(({ ui }) => {
@@ -52,11 +52,11 @@ export function InteractionBar() {
       >
         <FaIcon icon={faBars} className="mr-2" /> {core.strings.ide.menu}
       </button>
-      <div className="pt-1">
+      <div className="pt-1 whitespace-nowrap">
         <button
           className={clsx(
             'font-semibold mr-1 select-none disabled:cursor-default',
-            core.ws.settings.mode == 'code' && 'text-gray-400'
+            core.ws.settings.mode == 'code' && 'text-gray-600'
           )}
           disabled={dontChangeLanguage}
           onClick={() => {
@@ -71,7 +71,7 @@ export function InteractionBar() {
         <label
           htmlFor="toggleSwitch"
           className={clsx(
-            'relative inline-block w-12 mx-2 align-middle',
+            'relative inline-block w-12 mx-2 align-middle transition-opacity',
             dontChangeLanguage
               ? 'opacity-30 cursor-not-allowed'
               : 'cursor-pointer'
@@ -131,7 +131,8 @@ export function InteractionBar() {
             mainButtonState == 'stop'
               ? faStop
               : core.ws.ui.state == 'loading' &&
-                core.ws.settings.language == 'python-pro'
+                core.ws.settings.language == 'python-pro' &&
+                !core.worker?.mainWorkerReady
               ? faSpinner
               : faPlay
           }
@@ -139,6 +140,7 @@ export function InteractionBar() {
             'mr-2',
             core.ws.ui.state == 'loading' &&
               core.ws.settings.language == 'python-pro' &&
+              !core.worker?.mainWorkerReady &&
               'animate-spin-slow'
           )}
         />
@@ -195,7 +197,7 @@ function DropdownComponent({ dontChangeLanguage }: Props) {
             'flex-grow font-semibold border rounded-l-lg pl-2 py-0.5 transition-all border-r-0 select-none whitespace-nowrap',
             core.ws.settings.mode == 'code'
               ? 'border-[#770088]'
-              : 'border-gray-300 text-gray-400',
+              : 'border-gray-300 text-gray-600',
             dontChangeLanguage ? 'cursor-not-allowed' : 'cursor-pointer'
           )}
           onClick={() => {
@@ -260,7 +262,7 @@ function DropdownComponent({ dontChangeLanguage }: Props) {
 
       {isOpen && (
         <div
-          className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
           role="listbox"
         >
           {options.map((option) => (
@@ -270,7 +272,7 @@ function DropdownComponent({ dontChangeLanguage }: Props) {
               type="button"
               id={`select-language-${option.value.replace(/\s+/g, '-')}`}
               className={clsx(
-                'w-full px-2 py-1 text-left',
+                'w-full px-2 py-1 text-left block',
                 'transition-colors cursor-pointer font-semibold',
                 option.value === core.ws.settings.language
                   ? 'bg-[#770088]/20'

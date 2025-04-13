@@ -7,7 +7,18 @@ let pyodide = null
 let delay = new Int32Array(1)
 let lastStepTs = -1
 
-let decoder = new TextDecoder()
+const decoder = new TextDecoder()
+
+const compileScript = (code) => `
+def check_syntax(code):
+    try:
+        compile(code, "<string>", "exec")
+        return "ok"
+    except SyntaxError as e:
+        return f"[{e.lineno}, {e.offset}, {e.end_lineno}, {e.end_offset}, \\"{e.msg}\\"]"
+
+check_syntax(${JSON.stringify(code)})
+`
 
 self.onmessage = async (event) => {
   if (event.data == 'init') {
@@ -21,6 +32,14 @@ self.onmessage = async (event) => {
       pyodide.runPython(`import sys; sys.version`)
       self.postMessage('ready')
     }
+  }
+
+  if (event.data.type === 'compile' && pyodide) {
+    const diagnostics = pyodide.runPython(compileScript(event.data.code))
+    self.postMessage({
+      type: 'diagnostics',
+      diagnostics,
+    })
   }
 
   if (event.data.type === 'run') {
@@ -37,7 +56,8 @@ self.onmessage = async (event) => {
         })
       }
     }
-    const output = []
+    const outputs = []
+    const inputs = []
     const Robot = () => {
       return {
         schritt: (n = 1) => {
@@ -191,9 +211,11 @@ self.onmessage = async (event) => {
           key,
         })
       },
-      __ide_get_output: () => {
-        console.log(output)
-        return pyodide.toPy(output)
+      __ide_get_outputs: () => {
+        return pyodide.toPy(outputs)
+      },
+      __ide_get_inputs: () => {
+        return pyodide.toPy(inputs)
       },
       __ide_sleep: (s) => {
         sleep(s * 1000)
@@ -207,8 +229,7 @@ self.onmessage = async (event) => {
       pyodide.setStdout({
         write: (buf) => {
           const written_string = decoder.decode(buf)
-          console.log(written_string)
-          output.push(written_string)
+          outputs.push(written_string)
           self.postMessage({ type: 'stdout', text: written_string })
           return buf.length
         },
@@ -230,6 +251,7 @@ self.onmessage = async (event) => {
           // Read the input bytes.
           const inputBytes = dataArray.slice(0, length)
           lastStepTs = performance.now() * 1000
+          inputs.push(decoder.decode(inputBytes))
           return inputBytes
         },
       })

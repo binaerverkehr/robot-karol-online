@@ -172,6 +172,7 @@ export function startQuest(core: Core, id: number) {
     ui.pythonProCanSwitch = true
     ui.isPlayground = false
     ui.editQuestScript = false
+    ws.editor.questScript = ''
     if (data.script) {
       // I'm only setting python pro on default for quests that have a script
       ws.pythonCode = data.script.program
@@ -187,6 +188,11 @@ export function startQuest(core: Core, id: number) {
       ws.settings.language = 'robot karol'
       ws.settings.mode = 'blocks'
       ws.ui.lockLanguage = undefined
+    }
+    if (ws.quest.lockToKarolCode) {
+      ws.settings.language = 'robot karol'
+      ws.settings.mode = 'code'
+      ws.ui.lockLanguage = 'karol'
     }
   })
   switchToPage(core, 'quest')
@@ -331,10 +337,12 @@ export function startTesting(core: Core) {
 
 export function finishQuest(core: Core, stay: boolean = false) {
   if (core.ws.quest.id < 0) {
-    submit_event(
-      `custom_quest_complete_${window.location.hash.substring(1)}`,
-      core
-    )
+    if (core.ws.page != 'editor') {
+      submit_event(
+        `custom_quest_complete_${window.location.hash.substring(1)}`,
+        core
+      )
+    }
     core.mutateWs((ws) => {
       ws.ui.isAlreadyCompleted = true
       ws.ui.controlBarShowFinishQuest = false

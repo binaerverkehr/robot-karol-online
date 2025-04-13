@@ -1,6 +1,10 @@
 import { EditorView } from '@codemirror/view'
-import { useEffect, useRef } from 'react'
-import { faCircleExclamation, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { useEffect, useRef, useState } from 'react'
+import {
+  faCircleExclamation,
+  faExternalLink,
+  faTimes,
+} from '@fortawesome/free-solid-svg-icons'
 import { forceLinting } from '@codemirror/lint'
 
 import { useCore } from '../../lib/state/core'
@@ -19,11 +23,15 @@ import {
 import { submitAnalyzeEvent } from '../../lib/commands/analyze'
 import { BlockEditor } from './BlockEditor'
 import { QuestPrompt } from '../helper/QuestPrompt'
+import { PythonCheatsheet } from '../helper/PythonCheatsheet'
+import { set } from 'date-fns'
 
 export function EditArea() {
   const core = useCore()
 
   const view = useRef<EditorView>()
+
+  const [showPythonCheatSheet, setShowPythonCheatSheet] = useState(false)
 
   core.view = view
 
@@ -91,6 +99,12 @@ export function EditArea() {
       <div className="h-full flex flex-col overflow-y-auto relative">
         {core.ws.settings.language === 'python' && (
           <>
+            <div className="bg-yellow-200 p-2">
+              Hinweis: Dieser Karol Python Modus wird zum Ende des Schuljahrs in
+              den Python Modus integriert. Nutze wenn möglich schon jetzt den
+              neuen Python Modus. Melde dich bei Fragen gerne per E-Mail
+              (karol@arrrg.de).
+            </div>
             <div className="bg-gray-100 pr-2 py-2 flex items-baseline ">
               <div className="mr-4 ml-3">Einfügen:</div>
               <div>
@@ -225,49 +239,74 @@ export function EditArea() {
         )}
         {core.ws.settings.language === 'python-pro' && (
           <>
-            <div className="bg-gray-100 pr-32 py-2 pl-3 text-gray-600">
-              <a
-                href="https://quickref.me/python.html"
-                target="_blank"
-                className="link"
-                onClick={() => {
-                  submitAnalyzeEvent(core, 'ev_click_ide_pythonQuickRef')
-                }}
-              >
-                Spickzettel
-              </a>
-              <a
-                href="https://github.com/Entkenntnis/robot-karol-online/blob/main/MATERIAL-LEHRKRAEFTE.md#karol-x-python"
-                target="_blank"
-                className="ml-5 link"
-                onClick={() => {
-                  submitAnalyzeEvent(core, 'ev_click_ide_pythonExamples')
-                }}
-              >
-                Beispiele
-              </a>
-              {core.ws.page == 'editor' && (
-                <label className="ml-8 text-gray-500">
-                  <input
-                    type="checkbox"
-                    checked={core.ws.ui.editQuestScript}
-                    onChange={(e) => {
-                      const checked = e.target.checked
-                      core.mutateWs(({ ui }) => {
-                        ui.editQuestScript = checked
-                      })
-                      core.mutateWs((ws) => {
-                        ws.ui.needsTextRefresh = true
-                      })
-                      if (checked) {
-                        core.mutateWs(({ editor }) => {
-                          editor.editOptions = 'python-pro-only'
-                        })
-                      }
+            <div className="bg-gray-100 px-3 py-2 text-gray-600 flex justify-between">
+              <div>
+                {core.ws.ui.editQuestScript ? (
+                  <a
+                    className={clsx(
+                      'link',
+                      showPythonCheatSheet && 'text-purple-600'
+                    )}
+                    href="https://github.com/Entkenntnis/robot-karol-online/blob/main/QUESTSCRIPT.md#questscript"
+                    target="_blank"
+                    onClick={() => {
+                      submitAnalyzeEvent(core, 'ev_click_ide_questscriptGuide')
                     }}
-                  ></input>{' '}
-                  QuestScript bearbeiten (experimentell)
-                </label>
+                  >
+                    Anleitung{' '}
+                    <FaIcon icon={faExternalLink} className="text-xs" />
+                  </a>
+                ) : (
+                  <button
+                    className={clsx(
+                      'link',
+                      showPythonCheatSheet && 'text-purple-600'
+                    )}
+                    onClick={() => {
+                      submitAnalyzeEvent(core, 'ev_click_ide_pythoncheatsheet')
+                      setShowPythonCheatSheet((prev) => !prev)
+                    }}
+                  >
+                    Spickzettel
+                  </button>
+                )}
+                {core.ws.page == 'editor' && (
+                  <label
+                    className={clsx(
+                      'ml-8 text-gray-500 cursor-pointer',
+                      core.ws.editor.questScript && 'font-semibold'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={core.ws.ui.editQuestScript}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        core.mutateWs(({ ui }) => {
+                          ui.editQuestScript = checked
+                        })
+                        core.mutateWs((ws) => {
+                          ws.ui.needsTextRefresh = true
+                        })
+                        if (checked) {
+                          core.mutateWs(({ editor }) => {
+                            editor.editOptions = 'python-pro-only'
+                          })
+                        }
+                        setShowPythonCheatSheet(false)
+                      }}
+                    ></input>{' '}
+                    QuestScript bearbeiten
+                  </label>
+                )}
+              </div>
+              {core.ws.editor.questScript && core.ws.page == 'shared' && (
+                <div
+                  className="select-none text-purple-400 ml-2"
+                  title="Diese Aufgabe wird über ein QuestScript gesteuert"
+                >
+                  QuestScript
+                </div>
               )}
             </div>
           </>
@@ -276,10 +315,20 @@ export function EditArea() {
         {(core.ws.ui.state == 'error' ||
           (core.ws.settings.language == 'python-pro' &&
             core.ws.ui.errorMessages.length > 0)) && (
-          <div className="absolute left-20 right-12 rounded bottom-4 overflow-auto min-h-[47px] max-h-[200px] flex-grow flex-shrink-0 bg-red-50">
+          <div
+            className={clsx(
+              'absolute right-12 rounded bottom-4 overflow-auto min-h-[47px] max-h-[200px] flex-grow flex-shrink-0 bg-red-50',
+              core.ws.settings.language == 'python-pro'
+                ? showPythonCheatSheet
+                  ? 'left-[340px]'
+                  : 'left-12'
+                : 'left-20'
+            )}
+          >
             <div className="flex justify-between mt-[9px] relative">
               <div className="px-3 pb-1 pt-0">
-                {core.ws.settings.language == 'python-pro' ? (
+                {core.ws.settings.language == 'python-pro' &&
+                core.ws.ui.state !== 'error' ? (
                   <>
                     <pre>{core.ws.ui.errorMessages[0]}</pre>
                     <button
@@ -327,6 +376,8 @@ export function EditArea() {
     return (
       <div className="flex h-full overflow-y-auto relative flex-shrink">
         <div className="w-full overflow-auto h-full flex">
+          {core.ws.settings.language == 'python-pro' &&
+            showPythonCheatSheet && <PythonCheatsheet />}
           <div
             className={clsx(
               'w-full h-full flex flex-col relative',
